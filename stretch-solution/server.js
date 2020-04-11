@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const logger = require("./middleware/logger");
 const getUser = require("./middleware/getUser");
 const checkAuth = require("./middleware/checkAuth");
-const handleErrors = require("./middleware/handleErrors");
+const handleError = require("./middleware/handleError");
 
 const PORT = process.env.PORT || 3000;
 const SECRET = "nkA$SD89&&282hd";
@@ -63,6 +63,6 @@ server.get("/error", (req, res, next) => {
   next(fakeError);
 });
 
-server.use(handleErrors);
+server.use(handleError);
 
 server.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
