@@ -1,4 +1,4 @@
-# Learn Express Middleware
+# Learn Express Middleware
 
 Learn how to write your own Express middleware to do logging, authentication and error-handling.
 
