@@ -43,6 +43,21 @@ server.use((req, res, next) => {
 
 This tells Express to run the logger handler before every request, then move on to whatever handler is queued for that route.
 
+It would be useful to also have the time of each request in the log. You can get a nicely formatted time using the `toLocaleTimeString` method of date objects. Use this to log the time of each request.
+
+<details>
+<summary>Solution</summary>
+
+```js
+server.use((req, res, next) => {
+  const time = new Date().toLocaleTimeString();
+  console.log(`${time} ${req.method} ${req.url}`);
+  next();
+});
+```
+
+</details>
+
 ## Authentication middleware
 
 ### Accessing the user
