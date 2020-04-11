@@ -12,8 +12,8 @@ server.use(express.urlencoded());
 
 server.get("/", (req, res) => {
   const token = req.cookies.user;
-  const user = jwt.verify(token, SECRET);
-  if (user.email) {
+  if (token) {
+    const user = jwt.verify(token, SECRET);
     res.send(`<h1>Hello ${user.email}</h1><a href="/log-out">Log out</a>`);
   } else {
     res.send(`<h1>Hello world</h1><a href="/log-in">Log in</a>`);

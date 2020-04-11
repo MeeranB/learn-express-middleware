@@ -66,7 +66,9 @@ Currently we are accessing the user cookie in three handlers (`GET /`, `GET /pro
 
 We don't know which routes will want to access the logged in user value so we'll set this middleware on the whole app using `server.use`. We'll mimic the other middleware we're using and add the `user` value to the `req` object. This lets us pass values down through the request chain to subsequent handlers.
 
-Create a new middleware that reads the user cookie, verifies it with the `jsonwebtoken` library, then sets the resulting user object on the request object before calling `next`. Then change each handler that currently does this manually to instead grab the user from `req.user`.
+Create a new middleware that reads the user cookie, verifies it with the `jsonwebtoken` library, then sets the resulting user object as a property on the request object before calling `next`. Make sure you only try to verify the token if you actually have a user cookie.
+
+Then change each handler that currently does this manually to instead grab the user from `req.user`.
 
 <details>
 <summary>Solution</summary>
@@ -74,8 +76,10 @@ Create a new middleware that reads the user cookie, verifies it with the `jsonwe
 ```js
 server.use((req, res, next) => {
   const token = req.cookies.user;
-  const user = jwt.verify(token, SECRET);
-  req.user = user;
+  if (token) {
+    const user = jwt.verify(token, SECRET);
+    req.user = user;
+  }
   next();
 });
 
