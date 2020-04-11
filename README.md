@@ -62,7 +62,7 @@ server.use((req, res, next) => {
 
 ### Accessing the user
 
-Currently we are accessing the user cookie in three handlers (`GET /`, `GET /profile` and `GET /profile/settings`). We have to verify and decode a JWT to ensure the token was valid. This ends up being quite a lot of code repeated whenever we want to use the email value from the cookie. Let's create a `getUser` middleware to handle this repeated task.
+Currently we are accessing the user cookie in three handlers (`GET /`, `GET /profile` and `GET /profile/settings`). We have to verify and decode a JWT to ensure the token was valid. This ends up being quite a lot of code repeated whenever we want to use the email value from the cookie. Let's create a middleware to handle this repeated task.
 
 We don't know which routes will want to access the logged in user value so we'll set this middleware on the whole app using `server.use`. We'll mimic the other middleware we're using and add the `user` value to the `req` object. This lets us pass values down through the request chain to subsequent handlers.
 
@@ -93,30 +93,30 @@ server.get("/profile", (req, res) => {
 
 ### Protecting routes
 
-Currently our `GET /profile` route is a bit broken. If the user isn't logged in the welcome message says `undefined`. This route shouldn't really be accessible at all for unauthenticated users.
+Currently our `GET /profile` route is broken. If the user isn't logged in we get an error trying to access `user.email`. It would be better to show a "Please log in" page for unauthenticated users.
 
-Change this handler so that it checks whether the user is present on the request object. If not it should send a `401` HTML response with an error message in the `h1` and a link to the `/log-in` page. If the user
+Change this handler so that it checks whether the user is present on the request object. If not it should send a `401` HTML response with an error message in the `h1` and a link to the `/log-in` page.
 
 <details>
 <summary>Solution</summary>
 
 ```js
 server.get("/profile", (req, res) => {
-  const email = req.user;
-  if (!email) {
+  const user = req.user;
+  if (!user) {
     res.status(401).send(`
       <h1>Please log in to view this page</h1>
       <a href="/log-in">Log in</a>
     `);
   } else {
-    res.send(`<h1>Hello ${email}</h1>`);
+    res.send(`<h1>Hello ${user.email}</h1>`);
   }
 });
 ```
 
 </details>
 
-Now you should see the error if you visit `/profile` when you aren't logged in. However the `GET /profile/settings` route has the same problem. We _could_ copy paste the above code, but it would be better to avoid the duplication and create middleware that makes sure users are logged in.
+Now you should see the "please log in" page if you visit `/profile` when you aren't logged in. However the `GET /profile/settings` route has the same problem. We _could_ copy paste the above code, but it would be better to avoid the duplication and create middleware that makes sure users are logged in.
 
 Create a new function named `checkAuth`. It should take `req`, `res` and `next` as arguments and do the same user check as above. If the cookie is not present render the error HTML. If it is present call `next` to move on to the next handler.
 
@@ -126,9 +126,9 @@ Then add this middleware in front of the handler for any route we want to protec
 <summary>Solution</summary>
 
 ```js
-function checkAuth(req, res, next) => {
-  const email = req.cookies.user;
-  if (!email) {
+function checkAuth(req, res, next) {
+  const user = req.user;
+  if (!user) {
     res.status(401).send(`
       <h1>Please log in to view this page</h1>
       <a href="/log-in">Log in</a>
@@ -136,7 +136,7 @@ function checkAuth(req, res, next) => {
   } else {
     next();
   }
-});
+}
 
 server.get("/profile", checkAuth, (req, res) => {});
 
@@ -216,6 +216,8 @@ server.use(handleErrors);
 
 </details>
 
+Open the network tab and visit the `/error` route again. You should see a `403` response instead of `500`.
+
 ## Stretch goal: fancier error-handling
 
 The built-in Express error-handler does a bit more than just sending a static error message. It behaves differently in development and product.
@@ -235,6 +237,7 @@ You can check whether your app is running in production using `process.env.NODE_
 Amend your error-handler to send a standard HTTP status message in production, and the entire error stack trace in development.
 
 **Hint**: look at the `error.stack` property.
+**Hint**: use a `<pre>` tag so the error stack displays nicely.
 
 <details>
 <summary>Solution</summary>
@@ -247,7 +250,7 @@ function handleErrors(error, req, res, next) {
   if (process.env.NODE_ENV === "production") {
     res.send(STATUS_CODES[status]);
   } else {
-    res.send(error.stack);
+    res.send(`<pre>${error.stack}</pre>`);
   }
 }
 
@@ -255,3 +258,7 @@ server.use(handleErrors);
 ```
 
 </details>
+
+## Stretch goal: refactoring
+
+It's a bit cluttered having all our middleware mixed in with our handlers. Create a `middleware/` directory with files for each middleware function we built. Export each one, then import them in `server.js` to use.
