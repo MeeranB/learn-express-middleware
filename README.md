@@ -125,3 +125,114 @@ server.get("/profile/settings", checkAuth, (req, res) => {});
 ```
 
 </details>
+
+## Error-handling
+
+The `next` function is also used for error-handling. If you call it with no arguments Express will move to the next handler in the chain. However if you call it with an error Express will skip straight to the first error-handling middleware.
+
+For example if we encounter an error reading a file:
+
+```js
+server.get("/example", (req, res, next) => {
+  fs.readFile("example.txt", (error, contents) => {
+    if (error) {
+      next(error);
+    } else {
+      // carry on
+    }
+  });
+});
+```
+
+Calling `next(error)` stops this handler executing and jumps straight to the first error-handling middleware. If you haven't created any then Express' built-in one will handle the error. By default this will respond with a `500` error. Express will also catch any errors that get thrown by your application.
+
+Creating our own error-handling middleware is a little weird. An error-handler has _four_ arguments instead of the usual two or three—the first is the error itself:
+
+```js
+function handleErrors(error, req, res, next) {
+  // handle the error
+}
+```
+
+Express knows this middleware is for errors (because it has four arguments), so it will only get called when there's an error to deal with (i.e when a handler calls `next` with an error, or an error is thrown).
+
+Add an error-handling middleware to your server that logs the error it receives and then responds with a `500` status and a generic error message to the browser. You can test this by visiting the http://localhost:3000/error route to cause a fake error.
+
+<details>
+<summary>Solution</summary>
+
+```js
+function handleErrors(error, req, res, next) {
+  console.error(error);
+  res.status(500).send(`<h1>Something went wrong</h1>`);
+}
+
+server.use(handleErrors);
+```
+
+</details>
+
+The `500` status code is for general server errors, but sometimes we might want to be more specific. Since JavaScript errors are objects we can attach extra properties to them, like a status code.
+
+Amend the `GET /error` handler to add a `status` property to `fakeError` with a value of `403`. Then amend your error handler to use this property as the response status code (defaulting to `500` if there isn't one).
+
+<details>
+<summary>Solution</summary>
+
+```js
+server.get("/error", (req, res, next) => {
+  const fakeError = new Error("uh oh");
+  fakeError.status = 403;
+  next(fakeError);
+});
+
+function handleErrors(error, req, res, next) {
+  console.error(error);
+  const status = error.status || 500;
+  res.status(status).send(`<h1>Something went wrong</h1>`);
+}
+
+server.use(handleErrors);
+```
+
+</details>
+
+## Stretch goal: fancier error-handling
+
+The built-in Express error-handler does a bit more than just sending a static error message. It behaves differently in development and product.
+
+While you're developing locally it sends the entire error's stack trace as a response, allowing you to see exactly what went wrong in the browser. This would be dangerous for real users to have access to, so in production it just sends the default status message for each error code (e.g. `200 Ok`, `404 Not found`, `401 Unauthorized` etc).
+
+Node actually comes with a list of all the HTTP error codes and their messages. You can get them from `http.STATUS_CODES`. For example:
+
+```
+const { STATUS_CODES } = require("http");
+
+console.log(STATUS_CODES[401]); // "Unauthorized"
+```
+
+You can check whether your app is running in production using `process.env.NODE_ENV`. Production environments like Heroku will set this environment variable to "production".
+
+Amend your error-handler to send a standard HTTP status message in production, and the entire error stack trace in development.
+
+**Hint**: look at the `error.stack` property.
+
+<details>
+<summary>Solution</summary>
+
+```js
+function handleErrors(error, req, res, next) {
+  console.error(error);
+  const status = error.status || 500;
+  res.status(status);
+  if (process.env.NODE_ENV === "production") {
+    res.send(STATUS_CODES[status]);
+  } else {
+    res.send(error.stack);
+  }
+}
+
+server.use(handleErrors);
+```
+
+</details>
