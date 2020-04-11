@@ -1,7 +1,10 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-const { STATUS_CODES } = require("http");
+const logger = require("./middleware/logger");
+const getUser = require("./middleware/getUser");
+const checkAuth = require("./middleware/checkAuth");
+const handleErrors = require("./middleware/handleErrors");
 
 const PORT = process.env.PORT || 3000;
 const SECRET = "nkA$SD89&&282hd";
@@ -10,21 +13,8 @@ const server = express();
 
 server.use(cookieParser());
 server.use(express.urlencoded());
-
-server.use((req, res, next) => {
-  const time = new Date().toLocaleTimeString();
-  console.log(`${time} ${req.method} ${req.url}`);
-  next();
-});
-
-server.use((req, res, next) => {
-  const token = req.cookies.user;
-  if (token) {
-    const user = jwt.verify(token, SECRET);
-    req.user = user;
-  }
-  next();
-});
+server.use(logger);
+server.use(getUser);
 
 server.get("/", (req, res) => {
   const user = req.user;
@@ -57,18 +47,6 @@ server.get("/log-out", (req, res) => {
   res.redirect("/");
 });
 
-function checkAuth(req, res, next) {
-  const user = req.user;
-  if (!user) {
-    res.status(401).send(`
-      <h1>Please log in to view this page</h1>
-      <a href="/log-in">Log in</a>
-    `);
-  } else {
-    next();
-  }
-}
-
 server.get("/profile", checkAuth, (req, res) => {
   const user = req.user;
   res.send(`<h1>Hello ${user.email}</h1>`);
@@ -84,12 +62,6 @@ server.get("/error", (req, res, next) => {
   fakeError.status = 403;
   next(fakeError);
 });
-
-function handleErrors(error, req, res, next) {
-  console.error(error);
-  const status = error.status || 500;
-  res.status(status).send(`<h1>Something went wrong</h1>`);
-}
 
 server.use(handleErrors);
 
