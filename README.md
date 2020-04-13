@@ -238,7 +238,7 @@ console.log(STATUS_CODES[401]); // "Unauthorized"
 
 You can check whether your app is running in production using `process.env.NODE_ENV`. Production environments like Heroku will set this environment variable to "production".
 
-Amend your error-handler to send a standard HTTP status message in production, and the entire error stack trace in development.
+Amend your error-handler to send a standard HTTP status message in production, and the entire error stack trace in development. To test you can amend the `"dev"` script in the `package.json` to `NODE_ENV=production nodemon workshop/server.js`.
 
 **Hint**: look at the `error.stack` property.
 **Hint**: use a `<pre>` tag so the error stack displays nicely.
