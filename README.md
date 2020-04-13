@@ -218,6 +218,10 @@ server.use(handleErrors);
 
 Open the network tab and visit the `/error` route again. You should see a `403` response instead of `500`.
 
+## Stretch goal: refactoring
+
+It's a bit cluttered having all our middleware mixed in with our handlers. Create a `middleware/` directory with files for each middleware function we built. Export each one, then import them in `server.js` to use.
+
 ## Stretch goal: fancier error-handling
 
 The built-in Express error-handler does a bit more than just sending a static error message. It behaves differently in development and product.
@@ -258,7 +262,3 @@ server.use(handleErrors);
 ```
 
 </details>
-
-## Stretch goal: refactoring
-
-It's a bit cluttered having all our middleware mixed in with our handlers. Create a `middleware/` directory with files for each middleware function we built. Export each one, then import them in `server.js` to use.
