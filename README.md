@@ -224,7 +224,7 @@ It's a bit cluttered having all our middleware mixed in with our handlers. Creat
 
 ## Stretch goal: fancier error-handling
 
-The built-in Express error-handler does a bit more than just sending a static error message. It behaves differently in development and product.
+The built-in Express error-handler does a bit more than just sending a static error message. It behaves differently in development and production.
 
 While you're developing locally it sends the entire error's stack trace as a response, allowing you to see exactly what went wrong in the browser. This would be dangerous for real users to have access to, so in production it just sends the default status message for each error code (e.g. `200 Ok`, `404 Not found`, `401 Unauthorized` etc).
 
