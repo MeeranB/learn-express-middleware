@@ -226,7 +226,7 @@ While you're developing locally it sends the entire error's stack trace as a res
 
 Node actually comes with a list of all the HTTP error codes and their messages. You can get them from `http.STATUS_CODES`. For example:
 
-```
+```js
 const { STATUS_CODES } = require("http");
 
 console.log(STATUS_CODES[401]); // "Unauthorized"
