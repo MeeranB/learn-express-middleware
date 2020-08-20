@@ -132,7 +132,7 @@ server.get("/profile/settings", checkAuth, (req, res) => {});
 
 ## Error-handling
 
-The `next` function is also used for error-handling. If you call it with no arguments Express will move to the next handler in the chain. However if you call it with an error Express will skip straight to the first error-handling middleware.
+The `next` function is also used for error-handling. If you call it with no arguments Express will move to the next handler in the chain. However if you call it with an argument Express will skip straight to the first error-handling middleware.
 
 For example if we encounter an error reading a file:
 
@@ -148,7 +148,7 @@ server.get("/example", (req, res, next) => {
 });
 ```
 
-Calling `next(error)` stops this handler executing and jumps straight to the first error-handling middleware. If you haven't created any then Express' built-in one will handle the error. By default this will respond with a `500` error. Express will also catch any errors that get thrown by your application.
+Calling `next(error)` stops this handler executing and jumps straight to the first error-handling middleware. If you haven't created any then Express' built-in one will handle the error. By default this will respond with a `500` status. Express will also catch any errors that get thrown by your server.
 
 Creating our own error-handling middleware is a little weird. An error-handler has _four_ arguments instead of the usual two or three—the first is the error itself:
 
@@ -158,9 +158,9 @@ function handleErrors(error, req, res, next) {
 }
 ```
 
-Express knows this middleware is for errors (because it has four arguments), so it will only get called when there's an error to deal with (i.e when a handler calls `next` with an error, or an error is thrown).
+Express knows this middleware is for errors (because it has four arguments), so it will only get called when there's an error to deal with (i.e when a handler calls `next` with an argument, or an error is thrown).
 
-Add an error-handling middleware to your server that logs the error it receives and then responds with a `500` status and a generic error message to the browser. You can test this by visiting the http://localhost:3000/error route to cause a fake error.
+Add an error-handling middleware to your server that logs the error it receives and then responds with a `500` status and a generic HTML message to the browser. You can test this by visiting the http://localhost:3000/error route to cause a fake error.
 
 <details>
 <summary>Solution</summary>
@@ -176,9 +176,9 @@ server.use(handleErrors);
 
 </details>
 
-The `500` status code is for general server errors, but sometimes we might want to be more specific. Since JavaScript errors are objects we can attach extra properties to them, like a status code.
+The `500` status code is for general server errors, but sometimes we might want to be more specific. Since JavaScript errors are objects we can attach extra properties to them, e.g. a status code.
 
-Amend the `GET /error` handler to add a `status` property to `fakeError` with a value of `403`. Then amend your error handler to use this property as the response status code (defaulting to `500` if there isn't one).
+Amend the `GET /error` handler to add a `status` property to the `fakeError` object with a value of `403`. Then amend your error handler to use this property as the response status code (defaulting to `500` if there isn't one).
 
 <details>
 <summary>Solution</summary>
