@@ -49,7 +49,7 @@ This tells Express to run the logger handler before every request, then move on 
 
 Currently we are accessing the user cookie in three handlers (`GET /`, `GET /profile` and `GET /profile/settings`). We have to verify and decode a JWT to ensure the token was valid. This ends up being quite a lot of code repeated whenever we want to use the email value from the cookie. Let's create a middleware to handle this repeated task.
 
-We don't know which routes will want to access the logged in user value so we'll set this middleware on the whole app using `server.use`. We'll mimic the other middleware we're using and add the `user` value to the `req` object. This lets us pass values down through the request chain to subsequent handlers.
+We don't know which routes will want to access the logged in user value so we'll set this middleware on the whole app using `server.use`. We'll mimic the other middleware we're using and add the `user` value to the `req` object. This lets us pass values down through the request chain to later handlers.
 
 Create a new middleware that reads the user cookie, verifies it with the `jsonwebtoken` library, then sets the resulting user object as a property on the request object before calling `next`. Make sure you only try to verify the token if you actually have a user cookie.
 
@@ -103,7 +103,7 @@ server.get("/profile", (req, res) => {
 
 Now you should see the "please log in" page if you visit `/profile` when you aren't logged in. However the `GET /profile/settings` route has the same problem. We _could_ copy paste the above code, but it would be better to avoid the duplication and create middleware that makes sure users are logged in.
 
-Create a new function named `checkAuth`. It should take `req`, `res` and `next` as arguments and do the same user check as above. If the cookie is not present render the error HTML. If it is present call `next` to move on to the next handler.
+Create a new function named `checkAuth` that takes `req`, `res` and `next` as arguments. Move your code from above into this new function. If there is no `req.user` respond with the `401` HTML. If there is a `req.user` call `next` to move on to the next handler.
 
 Then add this middleware in front of the handler for any route we want to protect. We don't want this middleware running on all routes, since some of them are public.
 
