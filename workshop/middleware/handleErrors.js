@@ -1,7 +1,7 @@
 const { STATUS_CODES } = require("http");
 
 function handleErrors(error, req, res, next) {
-    console.error(error);
+    console.log(error.stack)
     const status = error.status || 500;
     res.status(status);
     if (process.env.NODE_ENV === "production") {
